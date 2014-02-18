@@ -3,6 +3,7 @@ class sphinx (
   $package_ensure = 'present',
   $service_name   = $sphinx::params::sphinx_service_name,
   $config_file    = undef,
+  $init_index     = false,
 ) inherits sphinx::params {
 
   anchor {'sphinx_first':} -> Class['sphinx::package']
@@ -10,7 +11,8 @@ class sphinx (
   class { 'sphinx::package':
     package_name   => $package_name,
     package_ensure => $package_ensure,
-    notify         => Class['sphinx::service'],
+    notify         => [ Class['sphinx::index'],
+                        Class['sphinx::service'] ],
   }
 
   class { 'sphinx::config':
@@ -19,6 +21,11 @@ class sphinx (
     config_file_path   => $sphinx::params::sphinx_config_file_path,
     require            => Class['sphinx::package'],
     notify             => Class['sphinx::service'],
+  }
+
+  class { 'sphinx::index':
+    init_index => $init_index,
+    require    => Class['sphinx::config']
   }
 
   class { 'sphinx::service':
